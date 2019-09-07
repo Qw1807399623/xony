@@ -13,11 +13,11 @@
         <div class="login_list"  >
             <div @touchstart.stop="name = true,pwd = false">
                 <img src="../../public/img/reg/icon7.png" alt="">
-                <input type="text" placeholder="请填写用户名" :value="uname">
+                <input type="text" placeholder="请填写用户名" v-model="uname">
             </div>
             <div  @touchstart.stop="pwd = true,name = false">
                 <img src="../../public/img/reg/icon4.png" alt="">
-                <input type="password" placeholder="请填写6-20位密码" :value="upwd">
+                <input type="password" placeholder="请填写6-20位密码" v-model="upwd">
             </div>
         </div>
         <div class="login_button" @click="user_login">登录</div>
@@ -41,33 +41,78 @@
     </div>
 </template>
 <script>
+import qs from 'qs'
+import config from '../stores/idnex.js'
+import Bus from '../assets/bus'
 export default {
     data () {
         return {
             name: false,
             pwd: false,
             uname:'',
-            upwd:''
+            upwd:'',
+            uid:1,
+            login_success:false,
         }
     },
     methods: {
         userInput(value) {
-            this.uname=(this.uname+value).slice(0,6)
+            this.uname=(this.uname+value).slice(0,16)
         },
         userDelete() {
-            this.uname=(this.uname+value).slice(0,-1)
+            this.uname=this.uname.slice(0,-1)
         },
         pwdInput(value) {
-            this.upwd=(this.upwd+value).slice(0,6)
+            this.upwd=(this.upwd+value).slice(0,16)
         },
         pwdDelete() {
-            this.upwd=(this.upwd+value).slice(0,-1)
+            this.upwd=this.upwd.slice(0,-1)
         },
         user_login(){
-            this.$router.push('/xony')
+            if(this.uname==''){
+                this.$toast({
+                    message:'用户名不能为空',
+                    position:"bottom"
+                })
+                return
+            }else if(this.upwd==''){
+                 this.$toast({
+                    message:'密码不能为空',
+                    position:"bottom"
+                })
+                return
+            }else{
+                var tmp=qs.stringify({
+                    uname:this.uname,
+                    upwd:this.upwd
+                })
+                this.axios.post('http://127.0.0.1:3000/login',tmp)
+                .then(result=>{
+                    if(result.data.code==-1){
+                        this.$toast({
+                        message:'用户名或密码错误',
+                        position:"bottom"
+                        })
+                        return
+                    }else{
+                        this.$toast({
+                        message:'登陆成功',
+                        position:"bottom"
+                        })
+                        this.$store.dispatch('sclogin')
+                        sessionStorage.setItem("user_login",this.$store.getters.isShow)
+                        this.uid=result.data[0].id
+                        sessionStorage.setItem("user_id",this.uid)
+                        this.$router.go('/xony')
+                        return
+                    }
+                })
+            }
         },
         reg(){
-            this.$router.push('/reg') 
+            this.$store.dispatch('nologin')
+            sessionStorage.setItem("user_login",this.$store.getters.isShow)
+            this.$router.go('/xony')
         },
         back(){
             this.$router.push('/xony') 

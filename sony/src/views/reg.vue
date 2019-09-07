@@ -8,19 +8,19 @@
             <div class="reg_list">
                 <div  @touchstart.stop="show = true">
                     <img src="../../public/img/reg/icon7.png" alt="">
-                    <input type="text" placeholder="请填写用户名">
+                    <input type="text" placeholder="请填写用户名" v-model="uname">
                 </div>
                 <div  @touchstart.stop="show = true">
                     <img src="../../public/img/reg/icon4.png" alt="">
-                    <input type="text" placeholder="请填写6-20位密码">
+                    <input type="password" placeholder="请填写6-20位密码" v-model="upwd">
                 </div>
                 <div  @touchstart.stop="show = true">
                     <img src="../../public/img/reg/icon1.png" alt="">
-                    <input type="text" placeholder="请填写常用手机号码">
+                    <input type="text" placeholder="请填写常用手机号码" v-model="phone">
                 </div>
                 <div  @touchstart.stop="show = true">
                     <img src="../../public/img/reg/icon3.png" alt="">
-                    <input type="text" placeholder="请验证码">
+                    <input type="text" placeholder="请验证码" v-model="code">
                     <div @click=" refreshCode">
                         <s-identify :identifyCode="identifyCode" id="restVal"></s-identify>
                     </div>
@@ -41,12 +41,20 @@
 </template>
 <script>
 import Identify from '../components/Identify'
+import config from '../stores/idnex'
+import qs from 'qs'
 export default {
     data () {
         return {
             identifyCodes: "1234567890",
             identifyCode: "",
-            show: false
+            show: false,
+            uname:'',
+            upwd:'',
+            phone:'',
+            code:'',
+            arr:{},
+            success_reg:false,
         }
     },
     components: {
@@ -60,10 +68,94 @@ export default {
             Toast('删除');
         },
         user_reg(){
-            this.$router.push('/login') 
+            let uname_reg=/^\w{6,16}$/;
+            let phone_reg=/^1[3-8]\d{9}$/;
+            let upwd_reg=/^\w{6,16}$/
+            // 用户名验证
+            if(this.uname==''){
+                this.$toast({
+                    message:'请输入请输入用户名',
+                    position:'bottom'
+                })
+                return
+            }else if(uname_reg.test(this.uname)==false){
+                    this.$toast({
+                    message:'用户名格式错误',
+                    position:'bottom'
+                    })
+                    return
+            // 密码验证
+            }else if(this.upwd==''){
+                this.$toast({
+                    message:'请输入请输入密码',
+                    position:'bottom'
+                })
+                return
+            }else if(upwd_reg.test(this.upwd)==false){
+                this.$toast({
+                    message:'密码格式错误',
+                    position:'bottom'
+                })
+                return
+            // 手机验证
+            }else if(this.phone==''){
+                this.$toast({
+                    message:'请输入手机号',
+                    position:'bottom'
+                })
+                return
+            // 验证码验证
+            }else if(phone_reg.test(this.phone)==false){
+                this.$toast({
+                    message:'手机格式错误',
+                    position:'bottom'
+                })
+                return
+            }else if(this.code==''){
+                this.$toast({
+                    message:'请输入验证码',
+                    position:'bottom'
+                })
+                return
+            }else if(this.code!=this.identifyCode){
+                this.$toast({
+                    message:'验证码错误',
+                    position:'bottom'
+                })
+                return
+            }{
+             var tmp =qs.stringify({
+                uname:this.uname,
+                phone:this.phone,
+                upwd:this.upwd
+            })
+            this.axios.post('http://127.0.0.1:3000/reg',tmp)
+            .then(res=>{
+                this.success_reg=true
+                if(res.data.code==-1){
+                    this.$toast({
+                        message:res.data.msg,
+                        position:"bottom",
+                    })
+                    return
+                }else{
+                    this.$toast({
+                        message:res.data.msg,
+                        position:"bottom"
+                    })
+                        this.$store.dispatch('islogin')
+                        sessionStorage.setItem("user_login",this.$store.getters.isShow)
+                        this.$router.go('/xony')
+                        return
+                    }
+            })
+            .catch(err=>{console.log(err)})
+            }
         },
         login(){
-            this.$router.push('login') 
+            this.$store.dispatch('islogin')
+            sessionStorage.setItem("user_login",this.$store.getters.isShow)
+            this.$router.go('/xony')
         },
         ramdomNum(min,max){
             return Math.floor(Math.random()*(max-min)+min)
@@ -97,7 +189,7 @@ export default {
     .reg_list>div{
         width:80%;
         margin:auto;
-        padding:10px;
+        padding:5px;
         border-top: 1px solid #ededed;
         border-bottom: 1px solid #ededed;
         text-align: left;
@@ -129,8 +221,8 @@ export default {
     position: absolute;
     width: 136px;
     height: 42px;
-    top:430px;
-    right:25px;
+    top:395px;
+    right:8px;
     z-index: 5;
     }
 </style>

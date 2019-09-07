@@ -6,10 +6,10 @@
                         <div class="edit_profile">
                             <img src="../../public/img/member/header.png" class="portrait">
                             <img src="../../public/img/member/header-right.png" class="medal">
-                            <div>编辑资料</div>
+                            <div @click="back">退出登录</div>
                         </div>
                         <div class="user_name">
-                            <div>JDD8DD2C</div>
+                            <div>{{arr.uname}}</div>
                             <div>成长值:6</div>
                         </div>
                 </div>
@@ -122,11 +122,33 @@
     </div>    
 </template>
 <script>
+import Bus from '../assets/bus'
 export default {
     data () {
         return {
-            
+            arr:[],
+            uid:''
         }
+    },
+    methods:{
+        back(){
+            this.$store.dispatch('islogin')
+            sessionStorage.setItem("user_login",this.$store.getters.isShow)
+            sessionStorage.removeItem('user_id')
+            this.$router.go('/xony')
+        }, 
+        user_load(){
+            var uid=this.user=sessionStorage.getItem('user_id')
+            console.log(uid)
+            this.axios.get('http://127.0.0.1:3000/member',{params:{uid}})
+            .then(result=>{
+                this.arr=result.data[0];
+                // console.log(this.arr);
+            })
+        }
+    },
+    created () {
+        this.user_load()
     }
 }
 </script>

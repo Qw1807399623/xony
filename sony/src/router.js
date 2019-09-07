@@ -9,6 +9,9 @@ import member from './views/member.vue'
 import reg from './views/reg.vue'
 import login from './views/login.vue'
 import user from './views/user.vue'
+import details from './views/details.vue'
+import beat1 from './views/beat1.vue'
+import beat2 from './views/beat2.vue'
 
 Vue.use(Router)
 
@@ -22,5 +25,8 @@ export default new Router({
     {path: '/reg',component: reg},
     {path: '/login',component: login},
     {path: '/user',component: user},
+    {path: '/details',component: details},
+    {path: '/beat1',component: beat1},
+    {path: '/beat2',component: beat2},
   ]
 })
